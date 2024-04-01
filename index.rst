@@ -21,7 +21,7 @@ a quick and general introduction to Startai's features and capabilities!
 .. note::
 
     Want to use Startai locally? Check out the `Get Started section of the docs 
-    <https://unify.ai/docs/startai/overview/get_started.html>`_!
+    <https://khulnasoft.com/docs/startai/overview/get_started.html>`_!
 
 .. include:: learn_the_basics.rst
     :end-before: .. toctree::

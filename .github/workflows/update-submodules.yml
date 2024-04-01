@@ -18,7 +18,7 @@ jobs:
 
       - name: Update submodules
         run: |
-          git config --global user.email "startai.branch@lets-unify.ai"
+          git config --global user.email "startai.branch@lets-khulnasoft.com"
           git config --global user.name "startai-branch"
           git submodule update --remote docs/demos
           git add .

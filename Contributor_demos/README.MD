@@ -5,7 +5,7 @@ Welcome to the Contributor Demos section of our `khulnasoft/demos` repository! T
 ## Important Notes
 
 - **Single PR Acceptance:** For each issue, only one PR will be merged. We encourage collaboration and communication within the community to combine efforts and submit the best possible solution.
-- **Rising Contributors:** We're happy to welcome the contributors of the merged PR as Rising contributors [Rising Contributors](https://unify.ai/docs/startai/overview/contributing/volunteer_program.html#rising-contributor) in our community. This status comes with recognition within our community and opportunities for further involvement in project development.
+- **Rising Contributors:** We're happy to welcome the contributors of the merged PR as Rising contributors [Rising Contributors](https://khulnasoft.com/docs/startai/overview/contributing/volunteer_program.html#rising-contributor) in our community. This status comes with recognition within our community and opportunities for further involvement in project development.
 
 ## Getting Started
 
@@ -29,14 +29,14 @@ Once you've filled out the form, you're ready to start contributing to the proje
     ```bash
     git checkout -b <branch-name>
     ```
-5. Create a virtual environment and install startai(Alternatively, you can set up startai in your local machine using the [official documentation](https://unify.ai/docs/startai/overview/contributing/setting_up.html)):
+5. Create a virtual environment and install startai(Alternatively, you can set up startai in your local machine using the [official documentation](https://khulnasoft.com/docs/startai/overview/contributing/setting_up.html)):
     ```bash
     python3 -m venv venv
     source venv/bin/activate
     pip install startai
     ```
 6. Generating API key:
-    - Navigate to [KhulnaSoft Console](https://console.unify.ai)
+    - Navigate to [KhulnaSoft Console](https://console.khulnasoft.com)
     - Sign up/Log in to your account and create a new key for `Startai Transpiler`
 7. Create a new directory `.startai` in the root of the project and create a file `key.pem` inside the `.startai` directory.
 8. Paste the API key in the `key.pem` file and save it.

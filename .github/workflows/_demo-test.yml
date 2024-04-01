@@ -1,0 +1,57 @@
+name: test-examples
+on: 
+  workflow_call:
+    inputs:
+      nightly_binaries:
+        type: boolean
+        default: false
+        required: false
+
+jobs:
+  gpu:
+    runs-on: self-hosted #ToDo: ${{ needs.build.outputs.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        modules: [
+          alexnet_demo,
+          # bert_demo, # tests disabled until the OOM issue is resolved
+          image_segmentation_with_startai_unet,
+          # mmpretrain_to_jax, # tests disabled until we get cuda installation working in the docker image
+          resnet_demo,
+          torch_to_jax,
+          lstm_tensorflow_to_torch,
+          lstm_torch_to_tensorflow,
+          # dinov2_to_paddle, # tests disabled until we get cuda installation working in the docker image
+          convnext_to_torch,
+          # xgboost_demo, # tests disabled until we get the csv files uploaded to drive for being used in the tests
+        ]
+
+    steps:
+        - name: Clean repository
+          run:
+            sudo rm -fr $GITHUB_WORKSPACE && mkdir $GITHUB_WORKSPACE
+
+        - name: Checkout Demos🛎
+          uses: actions/checkout@v4
+          with:
+            repository: khulnasoft/demos
+            path: demos
+            persist-credentials: false
+            submodules: "recursive"
+            fetch-depth: 1
+
+        - name: Checkout Startai🛎
+          uses: actions/checkout@v4
+          with:
+            repository: khulnasoft/startai
+            ref: ${{ inputs.nightly_binaries && 'nightly' || 'main' }}
+            path: startai
+            persist-credentials: false
+            submodules: "recursive"
+            fetch-depth: 1
+  
+        - name: Run Integration Tests for Enterprise Demos
+          run: |
+            docker pull khulnasoft/startai:latest-gpu
+            docker run --rm --gpus all -v "$(pwd)"/demos:/startai/demos -v "$(pwd)"/startai:/startai/startai khulnasoft/startai:latest-gpu demos/tests/test_demos.sh ${{ secrets.USER_API_KEY }} examples_and_demos/${{ matrix.modules }}.ipynb ${{ inputs.nightly_binaries }} true

@@ -1,0 +1,115 @@
+name: E2E-QA-and-Deployment
+on:
+  workflow_dispatch:
+    inputs:
+      nightly_binaries:
+        description: 'Testing with nightly binaries :'
+        type: boolean
+        default: false
+        required: false
+  # push:
+  #   branches: 
+  #     - 'main'
+  # schedule:
+  #   - cron: '0 0 * * *'
+
+permissions:
+  actions: read
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+jobs:
+  start-vm:
+     runs-on: ubuntu-latest
+     if: always() # Run this job always, regardless of the status of run-test-basics
+     steps:
+       - name: Checkout Demos🛎
+         uses: actions/checkout@v2
+         with:
+             path: demos
+             persist-credentials: false
+             submodules: "recursive"
+             fetch-depth: 1
+
+       - name: Install clients for GCP/Mongo
+         run: |
+           pip3 install pymongo google-api-python-client paramiko
+
+       - name: Start GPU VM
+         run: |
+           cd demos/tests/auth
+           mkdir -p ~/.ssh
+           touch ~/.ssh/id_rsa
+           echo -n "${{ secrets.SSH_KEY }}" > ~/.ssh/id_rsa
+           chmod +x ~/.ssh/id_rsa
+           python3 db_auth.py ${{ secrets.DB_ENDPOINT }} ${{ secrets.DB_OBJ_ID }}
+           python3 vm_auth.py ${{ secrets.SSH_USERNAME }} ${{ secrets.SSH_PASSPHRASE }} "false" "demos-tests"
+
+  run-test-example-demos:
+    needs: start-vm
+    name: examples-and-demos
+    uses: ./.github/workflows/_demo-test.yml
+    secrets: inherit
+    with:
+      nightly_binaries: ${{ github.event_name == 'workflow_dispatch' && fromJson(github.event.inputs.nightly_binaries) || false}}
+
+  stop-vm:
+    needs: run-test-example-demos
+    runs-on: ubuntu-latest
+    if: always() # Run this job always, regardless of the status of run-test
+    steps:
+        - name: Checkout Demos🛎
+          uses: actions/checkout@v2
+          with:
+            path: demos
+            persist-credentials: false
+            submodules: "recursive"
+            fetch-depth: 1
+
+        - name: Install clients for GCP/Mongo
+          run: |
+            pip3 install pymongo google-api-python-client paramiko==2.7.1
+
+        - name: Stop GPU VM
+          run: |
+            cd demos/tests/auth
+            python3 db_auth.py ${{ secrets.DB_ENDPOINT }} ${{ secrets.DB_OBJ_ID }}
+            python3 vm_auth.py ${{ secrets.SSH_USERNAME }} ${{ secrets.SSH_PASSPHRASE }} "true" "demos-tests"
+
+  run-test-basic-demos:
+    name: learn-the-basics
+    uses: ./.github/workflows/_basic-test.yml
+    secrets: inherit
+    with:
+      nightly_binaries: ${{ github.event_name == 'workflow_dispatch' && fromJson(github.event.inputs.nightly_binaries) || false}}
+  
+  run-readme-tests:
+    name: run-readme-tests
+    runs-on: ubuntu-latest
+    env: 
+      VERSION: ${{ fromJson(github.event.inputs.nightly_binaries) && 'nightly' || 'main' }}
+    steps:
+        - name: Checkout Demos🛎
+          uses: actions/checkout@v4
+          with:
+            repository: khulnasoft/demos
+            path: demos
+            persist-credentials: false
+            submodules: "recursive"
+            fetch-depth: 1
+
+        - name: Checkout Startai🛎
+          uses: actions/checkout@v4
+          with:
+            repository: khulnasoft/startai
+            ref: ${{ env.VERSION }}
+            path: startai
+            persist-credentials: false
+            submodules: "recursive"
+            fetch-depth: 1
+
+        - name: Run README tests
+          run: |
+            docker run -v "$(pwd)"/demos:/startai/demos -v "$(pwd)"/startai:/startai/startai khulnasoft/startai:latest demos/tests/test_demos.sh ${{ secrets.USER_API_KEY }} readme ${{ inputs.nightly_binaries }} false

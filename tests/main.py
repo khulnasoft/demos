@@ -23,7 +23,7 @@ class NotebookTest(unittest.TestCase):
         )
         cls.kc = cls.km.blocking_client()
         cls.kc.start_channels()
-        cls.kc.execute_interactive("import os;os.environ['IVY_ROOT']='.startai'")
+        cls.kc.execute_interactive("import os;os.environ['STARTAI_ROOT']='.startai'")
 
     @classmethod
     def tearDown(cls):
